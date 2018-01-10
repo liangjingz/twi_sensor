@@ -146,7 +146,8 @@ static void read_sensor_data_temp()
 		//NRF_LOG_INFO("My float number: " NRF_LOG_FLOAT_MARKER "\r\n", NRF_LOG_FLOAT(rh));
 				
     temp = (int)rh; 
-		NRF_LOG_INFO("Temperature: %d Celsius degrees.", temp);
+		//NRF_LOG_INFO("Temperature: %d Celsius degrees.", temp);
+		NRF_LOG_INFO("Temperature: " NRF_LOG_FLOAT_MARKER "\r\n", NRF_LOG_FLOAT(temp));
 
     APP_ERROR_CHECK(err_code);
 }
@@ -164,17 +165,13 @@ static void read_sensor_data_humi()
         {
             __WFE();
         }while (m_xfer_done == false);
-				
-		NRF_LOG_INFO("%x",m_sample[0]);
-		NRF_LOG_INFO("%x",m_sample[1]);
-		NRF_LOG_INFO("%x",m_sample[2]);
 	
 		uint16_t rawHumitite = (m_sample[0] << 8) | m_sample[1];
     float tempHumitite =  (float)rawHumitite / (float)65536; //2^16 = 65536
     float rh = (float)-6 + ((float)125 *(float)tempHumitite); 
     humi = (int)rh; 
-		NRF_LOG_INFO("Humitity: %d percent.", humi);
-
+		//NRF_LOG_INFO("Humitity: %d percent.", humi);
+		NRF_LOG_INFO("Humidity: " NRF_LOG_FLOAT_MARKER "\r\n", NRF_LOG_FLOAT(humi));
     APP_ERROR_CHECK(err_code);
 }
 
@@ -187,13 +184,18 @@ int main(void)
     NRF_LOG_DEFAULT_BACKENDS_INIT();
 		
 		NRF_LOG_INFO("---------------------------------Communication---------------------------------");
+		NRF_LOG_INFO("\r\nTWI sensor example : test miction 1");
     NRF_LOG_FLUSH();
     twi_init();
 		flag = 1;
 		int i = 0;
-    while (i<1)
+		int j = 0;
+		nrf_delay_ms(5000);
+		bsp_board_leds_init();
+    while (i<10001)
     {
         HTU21D_mesure_temp();
+				NRF_LOG_INFO("On est a l'etape %d", i);
 				do
         {
             __WFE();
@@ -209,12 +211,35 @@ int main(void)
         {
             __WFE();
         }while (m_xfer_done == false);
-				nrf_delay_ms(500);
+				nrf_delay_ms(1000);
 				
 				read_sensor_data_humi();
 				
 				i++;
         NRF_LOG_FLUSH();
+				/*if(i<25){
+					i=i+4;
+					nrf_delay_ms(4000);
+				}
+				else if(i>130){
+					i=i+4;
+					nrf_delay_ms(4000);
+				}*/
+				
+				nrf_delay_ms(8000);
+				if(humi>80 && temp>29.7){
+					if(j<i){
+						NRF_LOG_INFO("Miction detecte %d secondes", i*10);
+						j=i+10;
+					}
+
+					/* Toggle LEDs. */
+					for (int j = 0; j < LEDS_NUMBER; j++)
+					{
+							bsp_board_led_invert(j);
+					}
+				}
+				
     }
 }
 
